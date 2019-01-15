@@ -39,7 +39,6 @@ if (BRANCH == "master") {
                 def image = docker.image("build.app.amsterdam.nl:5000/fixxx/makkelijkemarkt_mercato:${env.BUILD_NUMBER}")
                 image.pull()
                 image.push("acceptance")
-                image.push("production")
             }
         }
 
