@@ -55,6 +55,8 @@ if (BRANCH == "master") {
                 image.pull()
                 image.push("production")
                 image.push("latest")
+                }
             }
         }
     }
+}
