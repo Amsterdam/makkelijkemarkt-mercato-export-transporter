@@ -1,7 +1,3 @@
-#!groovy
-pipeline{
-triggers{cron('0 * * * *')}
-
 def tryStep(String message, Closure block, Closure tearDown = null) {
     try {
         block()
@@ -87,5 +83,4 @@ if (BRANCH == "master") {
             }
         }
     }
-}
 }
