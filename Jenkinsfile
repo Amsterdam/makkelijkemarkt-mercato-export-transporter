@@ -41,6 +41,20 @@ if (BRANCH == "master") {
                 image.push("acceptance")
             }
         }
+    }
+
+    node {
+        stage("Deploy to ACC") {
+            tryStep "deployment", {
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-makkelijkemarkt-decos.yml'],
+                ]
+            }
+        }
+    }
+
 
     stage('Waiting for approval') {
         slackSend channel: '#ci-channel-app', color: 'warning', message: 'makkelijkemarkt_mercato is waiting for Production Release - please confirm'
@@ -54,7 +68,18 @@ if (BRANCH == "master") {
                 image.pull()
                 image.push("production")
                 image.push("latest")
-                }
+            }
+        }
+    }
+
+    node {
+        stage("Deploy") {
+            tryStep "deployment", {
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                        [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                        [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-makkelijkemarkt-decos.yml'],
+                ]
             }
         }
     }
