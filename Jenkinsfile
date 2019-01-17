@@ -88,4 +88,5 @@ if (BRANCH == "master") {
             }
         }
     }
+  }
 }
