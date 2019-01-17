@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -eux
 ./write-keys.sh
 ./download-from-objectstore.sh
 ./decrypt.sh
