@@ -10,6 +10,9 @@ echo "$GPG_PUBLIC_BASE64" | base64 -d > /keys/public.asc
 
 echo "Debug show public key"
 echo "$GPG_PUBLIC_BASE64"
+echo "Debug show private key"
+echo "$GPG_PRIVATE_BASE64"
+echo "$GPG_PRIVATE_BASE64" | base64
 
 ls -larth /keys
 
