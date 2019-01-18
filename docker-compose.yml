@@ -5,8 +5,6 @@ services:
         context: .
         dockerfile: Dockerfile
     environment:
-      - APP_ENV=production
-      - APP_SECRET=secret
       - SWIFT_AUTH_URL=https://identity.stack.cloudvps.com/v3/
       - SWIFT_REGION=NL
       - SWIFT_PROJECT_ID=${SWIFT_PROJECT_ID}
