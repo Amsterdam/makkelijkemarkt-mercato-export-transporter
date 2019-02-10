@@ -3,4 +3,14 @@
 echo ""
 echo "=====> Upload to Decos"
 
+mkdir /tmp/decos
+unzip /tmp/download/Bestanden.zip -d /tmp/decos
+
+ls -larth /tmp/decos
+
+sshpass -p "$BRIEVENBUS_PASSWORD" sftp -v -oStrictHostKeyChecking=no -oBatchMode=no -o User=$BRIEVENBUS_USERNAME -b - $BRIEVENBUS_SERVER << !
+   put /tmp/decos/Decos_Koopman.CSV test.txt
+   bye
+!
+
 echo ""
