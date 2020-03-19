@@ -1,19 +1,32 @@
+#!groovy
+
+// Project settings for deployment
+String PROJECTNAME = "makkelijkemarkt-mercato"
+String CONTAINERDIR = "."
+String PRODUCTION_BRANCH = "master"
+String INFRASTRUCTURE = 'secure'
+String PLAYBOOK = 'deploy-makkelijkemarkt-mercato.yml'
+
+// All other data uses variables, no changes needed for static
+String CONTAINERNAME = "fixxx/makkelijkemarkt-mercato:${env.BUILD_NUMBER}"
+String DOCKERFILE="Dockerfile"
+String BRANCH = "${env.BRANCH_NAME}"
+
+
 def tryStep(String message, Closure block, Closure tearDown = null) {
     try {
-        block()
+        block();
     }
     catch (Throwable t) {
         slackSend message: "${env.JOB_NAME}: ${message} failure ${env.BUILD_URL}", channel: '#ci-channel-app', color: 'danger'
-
-        throw t
+        throw t;
     }
     finally {
         if (tearDown) {
-            tearDown()
+            tearDown();
         }
     }
 }
-
 
 node {
     stage("Checkout") {
@@ -22,39 +35,52 @@ node {
 
     stage("Build image") {
         tryStep "build", {
-            def image = docker.build("build.app.amsterdam.nl:5000/fixxx/makkelijkemarkt_mercato:${env.BUILD_NUMBER}")
-            image.push()
-
+            docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
+                image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
+                image.push()
+            }
         }
     }
 }
 
-String BRANCH = "${env.BRANCH_NAME}"
-
-if (BRANCH == "master") {
-
+// On master branch, fetch the container, tag with production and latest and deploy to production
+if (BRANCH == "${PRODUCTION_BRANCH}") {
     node {
-        stage('Push acceptance image') {
-            tryStep "image tagging", {
-                def image = docker.image("build.app.amsterdam.nl:5000/fixxx/makkelijkemarkt_mercato:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("acceptance")
+        stage('Deploy to ACC') {
+            tryStep "deployment", {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
+                    image.push("acceptance")
+                }
+
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: '${INFRASTRUCTURE}'],
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: '${PLAYBOOK}'],
+                ]
             }
         }
     }
 
     stage('Waiting for approval') {
-        slackSend channel: '#ci-channel-app', color: 'warning', message: 'makkelijkemarkt_mercato is waiting for Production Release - please confirm'
+        slackSend channel: '#ci-channel-app', color: 'warning', message: 'Makkelijke markt mercato is waiting for Production Release - please confirm'
         input "Deploy to Production?"
     }
 
     node {
-        stage('Push production image') {
-            tryStep "image tagging", {
-                def image = docker.image("build.app.amsterdam.nl:5000/fixxx/makkelijkemarkt_mercato:${env.BUILD_NUMBER}")
-                image.pull()
-                image.push("production")
-                image.push("latest")
+        stage('Deploy to PROD') {
+            tryStep "deployment", {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
+                    image.push("production")
+                    image.push("latest")
+                }
+
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: '${INFRASTRUCTURE}'],
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: '${PLAYBOOK}'],
+                ]
             }
         }
     }
