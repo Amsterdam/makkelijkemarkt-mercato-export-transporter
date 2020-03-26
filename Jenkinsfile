@@ -49,8 +49,7 @@ if (BRANCH == "${TRIGGER_BRANCH}") {
                 docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
                     image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
                     image.push()
-                    image.push("acceptance")
-                    image.push("production")
+                    image.push("${INVENTORY}")
                 }
             }
         }
