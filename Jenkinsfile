@@ -1,9 +1,19 @@
 #!groovy
 
+// This is an non-typical pipeline.
+// A docker container is started that runs a tasks and then exits.
+// The code is not first deployed to acceptance and then promoted to production,
+// but can be deployed to either using the INVENTORY variable.
+// Confirmation for deployment is disabled, as deploys are triggered
+// nightly from two Jenkins jobs (acceptance and production).
+//
+// Required parameters:
+//   INVENTORY: 'acceptance' or 'production'
+
 // Project settings for deployment
 String PROJECTNAME = "makkelijkemarkt-mercato"
 String CONTAINERDIR = "."
-String PRODUCTION_BRANCH = "master"
+String TRIGGER_BRANCH = "master"
 String INFRASTRUCTURE = 'secure'
 String PLAYBOOK = 'deploy-makkelijkemarkt-mercato.yml'
 
@@ -28,57 +38,27 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
     }
 }
 
-node {
-    stage("Checkout") {
-        checkout scm
-    }
-
-    stage("Build image") {
-        tryStep "build", {
-            docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
-                image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
-                image.push()
+// Only trigger pipeline on the configured branch
+if (BRANCH == "${TRIGGER_BRANCH}") {
+    node {
+        stage("Checkout") {
+            checkout scm
+        }
+        stage("Build image") {
+            tryStep "build", {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
+                    image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
+                    image.push()
+                    image.push("${INVENTORY}")
+                }
             }
         }
-    }
-}
-
-// On master branch, fetch the container, tag with production and latest and deploy to production
-if (BRANCH == "${PRODUCTION_BRANCH}") {
-    node {
-        stage('Deploy to ACC') {
+        stage("Deploy") {
             tryStep "deployment", {
-                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
-                    image.push("acceptance")
-                }
-
                 build job: 'Subtask_Openstack_Playbook',
                 parameters: [
                     [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: "${INFRASTRUCTURE}"],
-                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
-                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: "${PLAYBOOK}"],
-                ]
-            }
-        }
-    }
-
-    stage('Waiting for approval') {
-        slackSend channel: '#ci-channel-app', color: 'warning', message: 'Makkelijke markt mercato is waiting for Production Release - please confirm'
-        input "Deploy to Production?"
-    }
-
-    node {
-        stage('Deploy to PROD') {
-            tryStep "deployment", {
-                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
-                    image.push("production")
-                    image.push("latest")
-                }
-
-                build job: 'Subtask_Openstack_Playbook',
-                parameters: [
-                    [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: "${INFRASTRUCTURE}"],
-                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: "${INVENTORY}"],
                     [$class: 'StringParameterValue', name: 'PLAYBOOK', value: "${PLAYBOOK}"],
                 ]
             }
