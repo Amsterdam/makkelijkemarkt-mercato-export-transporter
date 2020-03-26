@@ -38,12 +38,15 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
     }
 }
 
+node {
+    stage("Checkout") {
+        checkout scm
+    }
+}
+
 // Only trigger pipeline on the configured branch
 if (BRANCH == "${TRIGGER_BRANCH}") {
     node {
-        stage("Checkout") {
-            checkout scm
-        }
         stage("Build image") {
             tryStep "build", {
                 docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
