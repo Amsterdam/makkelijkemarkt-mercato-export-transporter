@@ -40,27 +40,27 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 // Only trigger pipeline on the configured branch
 if (BRANCH == "${TRIGGER_BRANCH}") {
-node {
-    stage("Checkout") {
-        checkout scm
-    }
-    stage("Build image") {
-        tryStep "build", {
-            docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
-                image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
-                image.push()
+    node {
+        stage("Checkout") {
+            checkout scm
+        }
+        stage("Build image") {
+            tryStep "build", {
+                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
+                    image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
+                    image.push()
+                }
+            }
+        }
+        stage("Deploy") {
+            tryStep "deployment", {
+                build job: 'Subtask_Openstack_Playbook',
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: "${INFRASTRUCTURE}"],
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: "${INVENTORY}"],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: "${PLAYBOOK}"],
+                ]
             }
         }
     }
-    stage("Deploy") {
-        tryStep "deployment", {
-            build job: 'Subtask_Openstack_Playbook',
-            parameters: [
-                [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: "${INFRASTRUCTURE}"],
-                [$class: 'StringParameterValue', name: 'INVENTORY', value: "${INVENTORY}"],
-                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: "${PLAYBOOK}"],
-            ]
-        }
-    }
-}
 }
