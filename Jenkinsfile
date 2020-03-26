@@ -13,14 +13,12 @@
 // Project settings for deployment
 String PROJECTNAME = "makkelijkemarkt-mercato"
 String CONTAINERDIR = "."
-String TRIGGER_BRANCH = "master"
 String INFRASTRUCTURE = 'secure'
 String PLAYBOOK = 'deploy-makkelijkemarkt-mercato.yml'
 
 // All other data uses variables, no changes needed for static
 String CONTAINERNAME = "fixxx/makkelijkemarkt-mercato:${env.BUILD_NUMBER}"
 String DOCKERFILE="Dockerfile"
-String BRANCH = "${env.BRANCH_NAME}"
 
 
 def tryStep(String message, Closure block, Closure tearDown = null) {
@@ -42,29 +40,23 @@ node {
     stage("Checkout") {
         checkout scm
     }
-}
-
-// Only trigger pipeline on the configured branch
-if (BRANCH == "${TRIGGER_BRANCH}") {
-    node {
-        stage("Build image") {
-            tryStep "build", {
-                docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
-                    image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
-                    image.push()
-                    image.push("${INVENTORY}")
-                }
+    stage("Build image") {
+        tryStep "build", {
+            docker.withRegistry("${DOCKER_REGISTRY_HOST}",'docker_registry_auth') {
+                image = docker.build("${CONTAINERNAME}","-f ${DOCKERFILE} ${CONTAINERDIR}")
+                image.push()
+                image.push("${INVENTORY}")
             }
         }
-        stage("Deploy") {
-            tryStep "deployment", {
-                build job: 'Subtask_Openstack_Playbook',
-                parameters: [
-                    [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: "${INFRASTRUCTURE}"],
-                    [$class: 'StringParameterValue', name: 'INVENTORY', value: "${INVENTORY}"],
-                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: "${PLAYBOOK}"],
-                ]
-            }
+    }
+    stage("Deploy") {
+        tryStep "deployment", {
+            build job: 'Subtask_Openstack_Playbook',
+            parameters: [
+                [$class: 'StringParameterValue', name: 'INFRASTRUCTURE', value: "${INFRASTRUCTURE}"],
+                [$class: 'StringParameterValue', name: 'INVENTORY', value: "${INVENTORY}"],
+                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: "${PLAYBOOK}"],
+            ]
         }
     }
 }
