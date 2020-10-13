@@ -10,7 +10,7 @@ ls -larth /tmp/decos
 
 echo "$BRIEVENBUS_USERNAME - $BRIEVENBUS_PASSWORD - $BRIEVENBUS_SERVER" | base64
 
-sshpass -p "$BRIEVENBUS_PASSWORD" sftp -v -oStrictHostKeyChecking=no -oBatchMode=no -o User=$BRIEVENBUS_USERNAME -b - $BRIEVENBUS_SERVER << !
+sshpass -p "$BRIEVENBUS_PASSWORD" sftp -v -oStrictHostKeyChecking=no -oBatchMode=no -o User=$BRIEVENBUS_USERNAME -oPort=50292 -b - $BRIEVENBUS_SERVER << !
    put /tmp/decos/Decos_Koopman.CSV
    bye
 !
