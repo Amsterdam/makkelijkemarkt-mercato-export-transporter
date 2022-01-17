@@ -4,7 +4,7 @@ String CONTAINERDIR = "."
 String CONTAINERNAME = "salmagundi/${PROJECTNAME}"
 String DOCKERFILE = "Dockerfile"
 String INFRASTRUCTURE = "secure"
-String PLAYBOOK = "deploy.yml"
+String PLAYBOOK = "deploy-makkelijkemarkt-mercato.yml"
 
 def tryStep (String message, Closure block, Closure tearDown = null) {
     try {
@@ -76,8 +76,6 @@ pipeline {
                                     [$class: "StringParameterValue", name: "INFRASTRUCTURE", value: "${INFRASTRUCTURE}"],
                                     [$class: "StringParameterValue", name: "INVENTORY", value: "${INVENTORY}"],
                                     [$class: "StringParameterValue", name: "PLAYBOOK", value: "${PLAYBOOK}"],
-                                    [$class: "StringParameterValue", name: "PLAYBOOKPARAMS", value: "-e cmdb_id=app_${PROJECTNAME}"],
-                                    [$class: "StringParameterValue", name: "STATIC_CONTAINER", value: "${PROJECTNAME}"]
                                     ], wait: true
                             }
 
