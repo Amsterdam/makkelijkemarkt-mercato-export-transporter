@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo ""
-echo "=====> Start downloading from ObjectStore"
+echo "=====> Start downloading from Mercato ObjectStore"
 
 mkdir /tmp/download
 

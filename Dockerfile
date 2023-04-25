@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:bullseye
 MAINTAINER datapunt@amsterdam.nl
 
 RUN ln -sf /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime
@@ -61,7 +61,7 @@ RUN apt-get update \
  && apt-get -y clean \
  && apt-get -y autoremove
 
-RUN apt-get -y install sshpass curl unzip gpg python-swiftclient
+RUN apt-get -y install sshpass curl unzip gpg python3-swiftclient
 
 COPY app /app
 
