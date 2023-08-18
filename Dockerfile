@@ -65,5 +65,9 @@ RUN apt-get -y install sshpass curl unzip gpg python3-swiftclient
 
 COPY app /app
 
+COPY ./certificates/adp_rootca.crt /usr/local/share/ca-certificates/adp_rootca.crt
+RUN chmod 644 /usr/local/share/ca-certificates/adp_rootca.crt \
+  && update-ca-certificates --fresh
+
 WORKDIR /app
 
