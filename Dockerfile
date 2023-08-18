@@ -65,8 +65,8 @@ RUN apt-get -y install sshpass curl unzip gpg python3-swiftclient
 
 COPY app /app
 
-COPY ./certificates/adp_rootca.crt /usr/local/share/ca-certificates/adp_rootca.crt
-RUN chmod 644 /usr/local/share/ca-certificates/adp_rootca.crt \
+COPY ./certificates/wsgateway.denhaag.nl-2023-digicert.crt /usr/local/share/ca-certificates/wsgateway.denhaag.nl-2023-digicert.crt
+RUN chmod 644 /usr/local/share/ca-certificates/wsgateway.denhaag.nl-2023-digicert.crt \
   && update-ca-certificates --fresh
 
 WORKDIR /app
