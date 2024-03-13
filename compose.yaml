@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  app:
+    image: ${REGISTRY:-localhost:5000}/${REPOSITORY:-salmagundi/mercato-transporter}:${VERSION:-latest}
+    build: .
+    command: rclone sync denhaag:my-container amsterdam:mercato
+    environment:
+      DEN_HAAG_SAS_TOKEN: null
+      STORAGE_ACCOUNT_NAME: null
+      STORAGE_ACCOUNT_TENANT_ID: null

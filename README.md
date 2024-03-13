@@ -1,28 +1,83 @@
-# Mercato Export transporter
+# RClone Containerized Application Readme
 
-Het Mercato systeem maakt export bestanden welke gebruikt worden door Makkelijke Markt en Decos. Mercato plaatst bestanden op een objectstore van Datapunt Gemeente Amsterdam.
-Deze transporter applicatie heeft als doel de bestanden vanuit hier te ontdoen van de GPG/PGP versleuteling en door te sturen naar SFTPI t.b.v. Decos en de objectstore t.b.v. Makkelijke Markt.
+## Overview
 
-# Hoe te gebruiken
+This README provides essential information for deploying and using the RClone containerized application.
+RClone is a powerful command-line program for managing and syncing data to and from various cloud storage providers.
+This containerized version makes it easy to deploy RClone as a cron job using Helm charts.
 
-Kopieer .env.dist naar .env en vul in .env de juiste waardes in voor de verschillende variabelen. De GPG public en private/secret sleutel moeten base64 encoded worden opgenomen (`cat private.key | base64 -w 0`)
+## Prerequisites
 
-Maak een Docker image
+Before deploying the RClone container, ensure that you have the following prerequisites in place:
 
-    docker build -t mercato-export-transporter .
+- A Kubernetes cluster for deploying the Helm chart.
+- Understanding of the helm chart at [github.com/amsterdam/helm-generic-application](https://github.com/Amsterdam/helm-generic-application).
 
-Voer het export proces in `/app/main.sh` uit om het decrypten van bestanden en uploaden naar MakkelijkeMarkt en Brievenbus/Decos uit te voeren. Plaats dit commando bijvoorbeeld in een `cronjob`.
+## Deployment
 
-    docker run --env-file .env --rm mercato-export-transporter:latest /app/main.sh
+To deploy the RClone containerized application, follow these steps:
 
-# GPG sleutels vervangen
+Create or update the `secrets`:
 
-Indien de sleutels vervangen moeten worden onderneem de volgende stappen:
+```yaml
+secrets:
+ rclone:
+   type: keyvault
+   secrets:
+     - objectstore-user
+     - objectstore-password
+     - objectstore-tenant
+     - objectstore-tenant-id
+```
 
-    gpg --gen-key
-    gpg --list-secret-keys
-    gpg --list-keys
-    gpg --export-secret-key -a "uid" > private.gpg
-    gpg --export -a "uid" > public.gpg
+Make sure these secrets exist with the proper values in your KeyVault.
 
-Tip: Om snel veel entropie te genereren indien nodig voer in een separate shell `dd if=/dev/sda of=/dev/zero` of gebruik `rndg`
+## Example Cron Job
+
+To create a cron job that runs RClone at a specific schedule, use the following configuration in your Helm values file:
+
+```yaml
+cronJobs:
+ rclone:
+   labels:
+     component: rclone
+   schedule: "0 * * * *"
+   containers:
+     - name: main
+       image:
+         repository: tamm/rclone
+         tag: 0.2.0
+       secrets:
+         - rclone
+       tempDirs:
+         - /home/rclone/.config
+       args:
+         - rclone
+         - sync
+         - objectstore:my-container
+         - azure:my-container
+         - -v
+       env:
+         OBJECSTORE_AUTH_URL: https://identity.stack.cloudvps.com/v2.0
+         STORAGE_ACCOUNT_NAME: mystorageaccount
+```
+
+This example creates a cron job that runs the RClone container at the top of every hour. Modify the schedule and container configuration to meet your specific needs.
+
+Make sure you whitelist the following urls:
+```
+identity.stack.cloudvps.com
+*.objectstore.eu
+```
+
+## Customization
+
+You can customize this Helm chart and the RClone configuration to adapt it to your specific requirements. 
+Update the environment variables and secrets as needed to connect to your object store and configure RClone for your use case.
+
+For more information about RClone and its capabilities, refer to the official documentation: 
+[RClone Documentation](https://rclone.org/docs/).
+
+And the remotes: 
+- [swift / OpenStack Object Storage](https://rclone.org/swift/)
+- [Microsoft Azure Blob Storage](https://rclone.org/azureblob/)
