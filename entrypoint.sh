@@ -7,14 +7,13 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 
 cat > "$CONFIG_FILE" <<EOF
 [denhaag]
-type = azureblob
+type = azurefiles
 sas_url = ${DEN_HAAG_SAS_TOKEN}
 
 [amsterdam]
 type = azureblob
 env_auth = true
 account = ${STORAGE_ACCOUNT_NAME}
-tenant = ${STORAGE_ACCOUNT_TENANT_ID}
 EOF
 
 fi

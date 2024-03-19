@@ -5,9 +5,9 @@ FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y curl unzip bash
 
 # Download rclone and install
-RUN curl -LO https://github.com/rclone/rclone/releases/download/v1.64.2/rclone-v1.64.2-linux-amd64.zip \
-  && unzip rclone-v1.64.2-linux-amd64.zip \
-  && cp rclone-v1.64.2-linux-amd64/rclone /usr/bin/ \
+RUN curl -LO https://github.com/rclone/rclone/releases/download/v1.66.0/rclone-v1.66.0-linux-amd64.zip \
+  && unzip rclone-v1.66.0-linux-amd64.zip \
+  && cp rclone-v1.66.0-linux-amd64/rclone /usr/bin/ \
   && chmod +x /usr/bin/rclone
 
 # Create a non-root user
