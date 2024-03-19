@@ -7,7 +7,7 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 
 cat > "$CONFIG_FILE" <<EOF
 [denhaag]
-type = azurefiles
+type = azureblob
 sas_url = ${DEN_HAAG_SAS_TOKEN}
 
 [amsterdam]
