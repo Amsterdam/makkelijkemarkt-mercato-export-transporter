@@ -7,7 +7,7 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 
 cat > "$CONFIG_FILE" <<EOF
 [denhaag]
-type = azureblob
+type = azurefiles
 share_name = fsdcopysweu02
 sas_url = ${DEN_HAAG_SAS_TOKEN}
 
