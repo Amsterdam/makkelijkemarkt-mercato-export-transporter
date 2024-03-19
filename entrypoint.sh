@@ -8,7 +8,6 @@ if [ ! -f "${CONFIG_FILE}" ]; then
 cat > "$CONFIG_FILE" <<EOF
 [denhaag]
 type = azurefiles
-share_name = fsdcopysweu02
 connection_string = ${DEN_HAAG_SAS_TOKEN}
 
 [amsterdam]
