@@ -9,7 +9,7 @@ cat > "$CONFIG_FILE" <<EOF
 [denhaag]
 type = azurefiles
 share_name = fsdcopysweu02
-sas_url = ${DEN_HAAG_SAS_TOKEN}
+connection_string = ${DEN_HAAG_SAS_TOKEN}
 
 [amsterdam]
 type = azureblob
